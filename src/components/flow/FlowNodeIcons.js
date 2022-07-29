@@ -65,6 +65,7 @@ import {
 import {MdLibraryAdd, MdTimer} from "react-icons/md";
 import {GoBrowser} from "react-icons/go";
 import {ReactComponent as MauticLogo} from "../../svg/mautic.svg";
+import {ReactComponent as ElasticEMailLogo} from "../../svg/elastic-email.svg";
 import {ReactComponent as Amplitude} from "../../svg/amplitude-icon.svg";
 import {ReactComponent as Mixpanel} from "../../svg/mixpanel.svg";
 import {ReactComponent as ActiveCampaign} from "../../svg/active-campaign.svg";
@@ -199,6 +200,7 @@ export const icons = {
     'path': (size) => <GiPathDistance size={size}/>,
     'airtable': (size) => <SiAirtable size={size}/>,
     'mautic': (size) => <MauticLogo style={{width: size, height: size}}/>,
+    'elastic-email': (size) => <ElasticEMailLogo style={{width: size, height: size}}/>,
     'ai': (size) => <FaRobot size={size}/>,
     'amplitude': (size) => <Amplitude style={{width: size, height: size}}/>,
     'mixpanel': (size) => <Mixpanel style={{width: size, height: size}}/>,
