@@ -1,11 +1,11 @@
 import {BiGitRepoForked} from "react-icons/bi";
 import React from "react";
-import {FiDatabase, FiMapPin, FiAlertTriangle} from "react-icons/fi";
+import {FiDatabase, FiMapPin, FiAlertTriangle, FiRss} from "react-icons/fi";
 import {
     BsPerson,
     BsCalculator, BsBoxArrowInUpRight, BsShuffle, BsFillGeoFill,
     BsHddNetwork, BsQuestionDiamond, BsArrowBarLeft, BsHash,
-    BsBoxArrowInRight
+    BsBoxArrowInRight, BsFillRecordFill, BsFillBarChartFill
 } from "react-icons/bs";
 import {AiOutlineSisternode, AiOutlineFieldTime, AiOutlineAlert, AiOutlineWhatsApp} from "react-icons/ai";
 import {TiTimes, TiFlowSwitch} from "react-icons/ti";
@@ -19,7 +19,8 @@ import {
     BiCloudRain,
     BiTime,
     BiParagraph,
-    BiArrowToRight
+    BiArrowToRight,
+    BiMessageSquareCheck
 } from "react-icons/bi";
 import {RiIncreaseDecreaseLine, RiScissorsCutFill} from "react-icons/ri";
 import {
@@ -218,7 +219,11 @@ export const icons = {
     "source": (size) => <BsBoxArrowInRight size={size}/>,
     "salesforce": (size) => <FaSalesforce size={size}/>,
     "transform": (size) => <MdTransform size={size}/>,
-    "password": (size) => <MdPassword size={size} />
+    "password": (size) => <MdPassword size={size} />,
+    "mqtt": (size) => <FiRss size={size}/>,
+    "entity": (size) => <BsFillRecordFill size={size}/>,
+    "report": (size) => <BsFillBarChartFill size={size}/>,
+    "message": (size) => <BiMessageSquareCheck size={size}/>,
 }
 
 

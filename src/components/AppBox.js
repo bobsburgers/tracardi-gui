@@ -37,6 +37,8 @@ import ElasticIndicesInfo from "./pages/ElasticIndicesInfo";
 import Migrations from "./pages/Migrations";
 import {BsStar} from "react-icons/bs";
 import BackgroundTasks from "./pages/BackgroundTasks";
+import EntityAnalytics from "./pages/EntityAnalytics";
+import Reports from "./pages/Reports";
 
 const AppBox = () => {
 
@@ -108,6 +110,7 @@ const AppBox = () => {
                           new PrivateTab(["admin", "marketer", "developer"], <EventsAnalytics/>, "/data/events", "Events"),
                           new PrivateTab(["admin", "marketer", "developer"], <ProfilesAnalytics/>, "/data/profiles", "Profiles"),
                           new PrivateTab(["admin", "marketer", "developer"], <SessionsAnalytics/>, "/data/sessions", "Sessions"),
+                          new PrivateTab(["admin", "marketer", "developer"], <EntityAnalytics/>, "/data/entities", "Entities")
                       ]}
             />
 
@@ -121,6 +124,16 @@ const AppBox = () => {
                           new PrivateTab(["admin", "developer"], <Flows/>, "/processing/workflows", "Workflows"),
                           new PrivateTab(["admin", "developer"], <Rules/>, "/processing/routing", "Routing Rules"),
                           new PrivateTab(["admin", "developer", "marketer"], <Segments/>, "/processing/segments", "Segments"),
+                      ]}
+            />
+        </PrivateRoute>
+
+        {/*Reporting*/}
+
+        <PrivateRoute path={urlPrefix("/reporting")} roles={["admin", "developer", "marketer"]}>
+            <PageTabs title="Reporting"
+                      tabs={[
+                          new PrivateTab(["admin", "developer", "marketer"], <Reports/>, "/reporting/reports", "Reports")
                       ]}
             />
         </PrivateRoute>
