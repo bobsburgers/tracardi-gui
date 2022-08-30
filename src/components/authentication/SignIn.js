@@ -110,7 +110,7 @@ const SignInForm = ({showAlert}) => {
     const handleEndpointReset = () => {
         resetApiUrlConfig();
         logout();
-        window.location.reload()
+        window.location.replace("/login");
     }
 
     const handleSubmit = async (event) => {
@@ -131,7 +131,7 @@ const SignInForm = ({showAlert}) => {
                 if (typeof e.response == "undefined") {
                     message = 'Api unavailable.';
                 } else if (e.response.status === 422) {
-                    message = 'Bag request. Fill all fields.';
+                    message = 'Bad request. Fill all fields.';
                 } else if (typeof e.response.data['detail'] == "string") {
                     message = e.response.data['detail']
                 }

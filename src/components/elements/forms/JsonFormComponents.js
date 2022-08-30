@@ -19,6 +19,7 @@ import DotAccessor from "./inputs/DotAccessor";
 import TuiSelectEventType from "../tui/TuiSelectEventType";
 import TuiSelectMultiConsentType from "../tui/TuiSelectMultiConsentType";
 import AutoComplete from "./AutoComplete";
+import ReportConfigInput from "./inputs/ReportConfigInput";
 
 export const TextInput = ({value, label, errorMessage, onChange}) => {
 
@@ -66,22 +67,13 @@ export function BoolInput({value, label, errorMessage, onChange}) {
     </div>
 }
 
-export function ContentInput({value, label, errorMessage, onChange, rows = 4}) {
+export function ContentInput({value, label, errorMessage, onChange, rows = 4, allowedTypes=["text/plain", "application/json", "text/html"]}) {
 
     const [textValue, setTextValue] = useState(value?.content || "");
-    const [tab, setTab] = useState(value?.type === "text/plain" ? 0 : 1);
+    const [tab, setTab] = useState(allowedTypes.indexOf(value?.type) > -1 ? allowedTypes.indexOf(value?.type) : 0);
 
     const getContentType = (tab) => {
-        switch (tab) {
-            case 0:
-                return "text/plain"
-            case 1:
-                return "application/json"
-            case 2:
-                return "text/html"
-            default:
-                return "application/json"
-        }
+        return allowedTypes.length > tab ? allowedTypes[tab] : "text/plain";
     }
 
     let contentType = getContentType(tab)
@@ -103,12 +95,22 @@ export function ContentInput({value, label, errorMessage, onChange, rows = 4}) {
         }
     }
 
+    const getTabs = () => {
+        let tabs = [];
+        for (let value of allowedTypes) {
+            if (value === "text/plain") tabs.push("Text");
+            if (value === "application/json") tabs.push("JSON");
+            if (value === "text/html") tabs.push("HTML");
+        }
+        return tabs;
+    }
+
     return <><Tabs
-        tabs={["Text", "JSON", "HTML"]}
+        tabs={getTabs()}
         defaultTab={tab}
         onTabSelect={handleTabChange}
     >
-        <TabCase id={0}>
+        <TabCase id={allowedTypes.indexOf("text/plain") > -1 ? allowedTypes.indexOf("text/plain") : -1}>
             <div style={{marginTop: 10}}>
                 <TextField label={label}
                            value={textValue}
@@ -121,7 +123,7 @@ export function ContentInput({value, label, errorMessage, onChange, rows = 4}) {
             </div>
 
         </TabCase>
-        <TabCase id={1}>
+        <TabCase id={allowedTypes.indexOf("application/json") > -1 ? allowedTypes.indexOf("application/json") : -2}>
             <fieldset style={{marginTop: 10}}>
                 <legend>{label}</legend>
                 <JsonEditor
@@ -130,7 +132,7 @@ export function ContentInput({value, label, errorMessage, onChange, rows = 4}) {
                 />
             </fieldset>
         </TabCase>
-        <TabCase id={2}>
+        <TabCase id={allowedTypes.indexOf("text/html") > -1 ? allowedTypes.indexOf("text/html") : -3}>
             <fieldset style={{marginTop: 10}}>
                 <legend>{label}</legend>
                 <HtmlEditor
@@ -282,7 +284,7 @@ export function JsonInput({value, onChange = null}) {
         }
     }
 
-    const [formatedValue, error] = getFormattedValue(value)
+    const [formatedValue, error] = getFormattedValue(value);
     const [json, setJson] = useState(formatedValue);
     const [errorMsg, setErrorMsg] = useState(error);
 
@@ -295,6 +297,10 @@ export function JsonInput({value, onChange = null}) {
             onChange(value);
         }
     }
+
+    React.useEffect(() => {
+        handleChange(value);
+    }, [value])
 
     return <>
         <fieldset style={{marginTop: 10}}>
@@ -341,7 +347,7 @@ export function ResourceSelect({value, errorMessage, onChange = null, tag = null
         }
     };
 
-    return <TuiSelectResource value={value}
+    return <TuiSelectResource initValue={value}
                               errorMessage={errorMessage}
                               onSetValue={handleChange}
                               tag={tag}
@@ -349,7 +355,7 @@ export function ResourceSelect({value, errorMessage, onChange = null, tag = null
     />
 }
 
-export function AutoCompleteInput({value, values, label, endpoint, error, defaultValueSet, onChange, onSetValue}) {
+export function AutoCompleteInput({value, values, label, endpoint, error, defaultValueSet, onChange, onSetValue, onlyValueWithOptions=true}) {
 
     const handleChange = (value) => {
         if (onChange instanceof Function) {
@@ -364,7 +370,7 @@ export function AutoCompleteInput({value, values, label, endpoint, error, defaul
     };
 
     return <AutoComplete
-        onlyValueWithOptions={true}
+        onlyValueWithOptions={onlyValueWithOptions}
         placeholder={label}
         initValue={value ? value : null}
         defaultValueSet={defaultValueSet}
@@ -427,4 +433,17 @@ export function ConsentTypes({value: initValue, onChange = null}) {
 
 export function ReadOnlyTags({value}) {
     return Array.isArray(value) && value.map((tag, index) => <Chip label={tag} key={index} style={{marginLeft: 5}}/>)
+}
+
+export function ReportConfig({value: initValue, onChange, errorMessage, endpoint = null}) {
+    
+    const [value, setValue] = useState(initValue);
+    const handleChange = value => {
+        setValue(value);
+        if (onChange instanceof Function) {
+            onChange(value);
+        }
+    };
+
+    return <ReportConfigInput value={value} onChange={handleChange} errorMessage={errorMessage} endpoint={endpoint}/>
 }

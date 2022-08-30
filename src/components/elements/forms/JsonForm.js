@@ -11,18 +11,26 @@ import {
     KeyValueInput,
     ListOfDotPaths,
     ResourceSelect, SqlInput, TextAreaInput, TextInput,
-    SelectInput, BoolInput, ReadOnlyTags, EventTypes, EventType, ConsentTypes, AutoCompleteInput
+    SelectInput, BoolInput, ReadOnlyTags, EventTypes, EventType, ConsentTypes, AutoCompleteInput,
+    ReportConfig
 } from "./JsonFormComponents";
 import ErrorsBox from "../../errors/ErrorsBox";
 import {AiOutlineCheckCircle} from "react-icons/ai";
 import MutableMergeRecursive from "../../../misc/recursiveObjectMerge";
+import {isObject} from "../../../misc/typeChecking";
 
 const getComponentByType = ({value, values, errorMessage, componentType, fieldId, onChange}) => {
 
     const handleOnChange = (value, fieldId, deleted = {}) => {
         if (onChange instanceof Function) {
             // Converts flat structure to nested object
-            onChange(dot2object({[fieldId]: value}), Object.keys(deleted).length > 0 ? dot2object({[fieldId]: deleted}) : {})
+            onChange(
+                (fieldId !== '*')
+                    ? dot2object({[fieldId]: value})
+                    : dot2object(value)
+                , Object.keys(deleted).length > 0
+                    ? dot2object({[fieldId]: deleted})
+                    : {})
         }
     }
 
@@ -34,6 +42,7 @@ const getComponentByType = ({value, values, errorMessage, componentType, fieldId
                 values={values}
                 error={errorMessage}
                 onSetValue={(value) => handleOnChange(value, fieldId)}
+                onChange={value => handleOnChange(value, fieldId)}
                 {...props}/>
 
         case "readOnlyTags":
@@ -153,6 +162,14 @@ const getComponentByType = ({value, values, errorMessage, componentType, fieldId
                 errorMessage={errorMessage}
                 {...props}/>
 
+        case "reportConfig":
+            return (props) => <ReportConfig
+                value={value}
+                onChange={(value) => handleOnChange(value, fieldId)}
+                errorMessage={errorMessage}
+                {...props}
+            />
+
         default:
             return () => <AlertBox>Missing form type {componentType}.</AlertBox>
     }
@@ -165,15 +182,32 @@ const Fields = ({fields, values, errorMessages, keyValueMapOfComponentValues, on
         const componentType = fieldObject.component?.type;
         const props = fieldObject.component?.props;
 
-        const readValue = (fieldId) => {
-            if (fieldId in keyValueMapOfComponentValues) {
-                return keyValueMapOfComponentValues[fieldId]
-            } else if (fieldId in values) {
-                // This is a hack for ResourceSelect and other components that take objects
-                return values[fieldId]
-            }
+        const searchRecursivelyInValues = (path, object=values) => {
+            if (Array.isArray(path) && path.length > 1) {
+                const key = path.shift();
+                if (isObject(object) && key in object) {
+                    return searchRecursivelyInValues(path, object[key]);
+                } else return null;
+                
+            } else if (Array.isArray(path) && path.length === 1) {
+                const key = path.shift();
+                if (isObject(object) && key in object) {
+                    return object[key];
+                } else return null;
 
-            return null
+            } else return null;
+        }
+
+        const readValue = (fieldId) => {
+            if(fieldId === '*') {
+                return dot2object(keyValueMapOfComponentValues)
+            } else if (fieldId in keyValueMapOfComponentValues) {
+                // This handles simple fields like nums, strings
+                return keyValueMapOfComponentValues[fieldId]
+            } else {
+                // This handles fields that are subtrees of config object
+                return searchRecursivelyInValues(fieldId.split("."));
+            }
         }
 
         const readErrorMessage = (componentType, fieldId) => {
@@ -275,14 +309,14 @@ const JsonForm = ({schema, values = {}, errorMessages = {}, serverSideError, onS
 
             {serverSideError && <ErrorsBox errorList={serverSideError}/>}
 
-            <Button onClick={() => handleSubmit()}
+            {onSubmit && <Button onClick={() => handleSubmit()}
                     confirmed={confirmed}
                     error={hasErrors}
                     progress={processing}
                     label="Save"
                     icon={<AiOutlineCheckCircle size={20}/>}
                     style={{justifyContent: "center"}}
-            />
+            />}
         </TuiForm>
     }
 

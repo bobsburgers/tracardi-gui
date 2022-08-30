@@ -1,11 +1,52 @@
 import JsonForm from "../JsonForm";
 import React, {useRef, useState} from "react";
 import {asyncRemote} from "../../../../remote_api/entrypoint";
-import {v4 as uuid4} from "uuid";
 import {TuiForm, TuiFormGroup, TuiFormGroupContent, TuiFormGroupField, TuiFormGroupHeader} from "../../tui/TuiForm";
 import TextField from "@mui/material/TextField";
 import TuiTags from "../../tui/TuiTags";
 import {isEmptyObject} from "../../../../misc/typeChecking";
+import MicroserviceForm from "../MicroserviceForm";
+
+function MicroserviceAndResourceForm({onSubmit}) {
+
+    const [service, setService] = useState(null)
+    const [resourceConfig, setResourceConfig] = useState(null)
+
+    const handleSubmit = (resource) => {
+        if (onSubmit instanceof Function) {
+            onSubmit(service, resource)
+        }
+    }
+
+    return <>
+        <TuiForm>
+            <TuiFormGroup>
+                <TuiFormGroupHeader header="Microservice Server Configuration"/>
+                <TuiFormGroupContent>
+                    <MicroserviceForm
+                        onServiceChange={(serviceData, serviceResource) => {
+                            setResourceConfig(serviceResource)
+                            setService(serviceData)
+                        }}
+                        onServiceClear={(serviceData) => {
+                            setService(serviceData)
+                            setResourceConfig(null)
+                        }}
+                    />
+                </TuiFormGroupContent>
+            </TuiFormGroup>
+        </TuiForm>
+        {resourceConfig && <JsonForm
+            values={resourceConfig.init}
+            schema={resourceConfig.form}
+            // onChange={handleResourceChange}
+            onSubmit={handleSubmit}
+            // processing={sendingForm}
+            // errorMessages={formError}
+            // serverSideError={serverError}
+        />}
+    </>
+}
 
 function DescriptionForm({data: initData, onChange}) {
 
@@ -75,30 +116,43 @@ export default function TracardiProServiceConfigForm({service, onSubmit}) {
         init.current = values
     }
 
-    const handleSubmit = async () => {
-        try {
-            let payload = {
-                id: uuid4(),
-                type: service?.metadata?.type,
-                name: data.current.name,
-                description: data.current.description,
-                icon: service?.metadata?.icon,
-                tags: data.current.tags,
-                groups: [],
-                credentials: {
-                    production: init.current,
-                    test: init.current
-                }
+    const getServiceObject = (value) => {
+        return {
+            metadata: service.metadata,
+            form: {
+                metadata: data.current,
+                data: value
             }
+        }
+    }
 
-            if(service?.destination && !isEmptyObject(service?.destination)) {
-                payload.destination = service.destination
-            }
+    const getDestinationObject = () => {
+        return (service?.destination && !isEmptyObject(service?.destination))
+            ? service.destination
+            : null
+    }
+
+    const getPluginObject = () => {
+        return (service?.plugin && !isEmptyObject(service?.plugin))
+            ? service.plugin
+            : null
+    }
+
+    const handleSubmitOfMicroservice = async (microservice, resource) => {
+        try {
 
             const response = await asyncRemote({
-                url: '/tpro/resource',
+                url: '/tpro/install/microservice',
                 method: "POST",
-                data: payload
+                data: {
+                    service: getServiceObject(microservice.credentials),
+                    destination: getDestinationObject(),
+                    plugin: getPluginObject(),
+                    microservice: {
+                        service: microservice.service,
+                        credentials: resource
+                    }
+                }
             })
 
             if (onSubmit instanceof Function) {
@@ -112,16 +166,52 @@ export default function TracardiProServiceConfigForm({service, onSubmit}) {
             // todo global error - when url not available
             // setError(getError(e))
         }
+    }
 
+    const handleSubmitOfLocalResource = async (value) => {
+        try {
+            const response = await asyncRemote({
+                url: '/tpro/install',
+                method: "POST",
+                data: {
+                    service: getServiceObject(value),
+                    destination: getDestinationObject(),
+                    plugin: getPluginObject(),
+                }
+            })
 
+            if (onSubmit instanceof Function) {
+                onSubmit(response.data);
+            }
+
+        } catch (e) {
+            if (e?.response?.status === 422) {
+                setErrorMessages(e.response.data)
+            }
+            // todo global error - when url not available
+            // setError(getError(e))
+        }
+    }
+
+    const isMicroservice = (service) => {
+        return Array.isArray(service?.metadata?.submit) && service?.metadata?.submit?.includes('microservice')
+    }
+
+    const isResource = (service) => {
+        return Array.isArray(service?.metadata?.submit) && service?.metadata?.submit?.includes('resource')
     }
 
     return <div>
         <DescriptionForm data={data.current} onChange={(value) => data.current = value}/>
-        <JsonForm schema={service?.form}
-                  values={service?.init}
-                  errorMessages={errorMessages}
-                  onChange={handleChange}
-                  onSubmit={handleSubmit}/>
+        {isMicroservice(service) && <MicroserviceAndResourceForm
+            onSubmit={handleSubmitOfMicroservice}
+        />}
+        {isResource(service) && <JsonForm
+            schema={service?.form}
+            values={service?.init}
+            errorMessages={errorMessages}
+            onChange={handleChange}
+            onSubmit={handleSubmitOfLocalResource}/>
+        }
     </div>
 }
