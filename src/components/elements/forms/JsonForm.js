@@ -17,13 +17,20 @@ import {
 import ErrorsBox from "../../errors/ErrorsBox";
 import {AiOutlineCheckCircle} from "react-icons/ai";
 import MutableMergeRecursive from "../../../misc/recursiveObjectMerge";
+import {isObject} from "../../../misc/typeChecking";
 
 const getComponentByType = ({value, values, errorMessage, componentType, fieldId, onChange}) => {
 
     const handleOnChange = (value, fieldId, deleted = {}) => {
         if (onChange instanceof Function) {
             // Converts flat structure to nested object
-            onChange(dot2object({[fieldId]: value}), Object.keys(deleted).length > 0 ? dot2object({[fieldId]: deleted}) : {})
+            onChange(
+                (fieldId !== '*')
+                    ? dot2object({[fieldId]: value})
+                    : dot2object(value)
+                , Object.keys(deleted).length > 0
+                    ? dot2object({[fieldId]: deleted})
+                    : {})
         }
     }
 
@@ -178,13 +185,13 @@ const Fields = ({fields, values, errorMessages, keyValueMapOfComponentValues, on
         const searchRecursivelyInValues = (path, object=values) => {
             if (Array.isArray(path) && path.length > 1) {
                 const key = path.shift();
-                if (key in object) {
+                if (isObject(object) && key in object) {
                     return searchRecursivelyInValues(path, object[key]);
                 } else return null;
                 
             } else if (Array.isArray(path) && path.length === 1) {
                 const key = path.shift();
-                if (key in object) {
+                if (isObject(object) && key in object) {
                     return object[key];
                 } else return null;
 
@@ -192,7 +199,9 @@ const Fields = ({fields, values, errorMessages, keyValueMapOfComponentValues, on
         }
 
         const readValue = (fieldId) => {
-            if (fieldId in keyValueMapOfComponentValues) {
+            if(fieldId === '*') {
+                return dot2object(keyValueMapOfComponentValues)
+            } else if (fieldId in keyValueMapOfComponentValues) {
                 // This handles simple fields like nums, strings
                 return keyValueMapOfComponentValues[fieldId]
             } else {
@@ -300,14 +309,14 @@ const JsonForm = ({schema, values = {}, errorMessages = {}, serverSideError, onS
 
             {serverSideError && <ErrorsBox errorList={serverSideError}/>}
 
-            <Button onClick={() => handleSubmit()}
+            {onSubmit && <Button onClick={() => handleSubmit()}
                     confirmed={confirmed}
                     error={hasErrors}
                     progress={processing}
                     label="Save"
                     icon={<AiOutlineCheckCircle size={20}/>}
                     style={{justifyContent: "center"}}
-            />
+            />}
         </TuiForm>
     }
 

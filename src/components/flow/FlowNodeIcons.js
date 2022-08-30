@@ -5,7 +5,7 @@ import {
     BsPerson,
     BsCalculator, BsBoxArrowInUpRight, BsShuffle, BsFillGeoFill,
     BsHddNetwork, BsQuestionDiamond, BsArrowBarLeft, BsHash,
-    BsBoxArrowInRight, BsFillRecordFill, BsFillBarChartFill
+    BsBoxArrowInRight, BsFillRecordFill, BsFillBarChartFill, BsCreditCard
 } from "react-icons/bs";
 import {AiOutlineSisternode, AiOutlineFieldTime, AiOutlineAlert, AiOutlineWhatsApp} from "react-icons/ai";
 import {TiTimes, TiFlowSwitch} from "react-icons/ti";
@@ -69,6 +69,7 @@ import {ReactComponent as ElasticEMailLogo} from "../../svg/elastic-email.svg";
 import {ReactComponent as Amplitude} from "../../svg/amplitude-icon.svg";
 import {ReactComponent as Mixpanel} from "../../svg/mixpanel.svg";
 import {ReactComponent as ActiveCampaign} from "../../svg/active-campaign.svg";
+import {ReactComponent as Stripe} from "../../svg/stripe.svg";
 import {
     SiRabbitmq,
     SiMongodb,
@@ -224,6 +225,8 @@ export const icons = {
     "entity": (size) => <BsFillRecordFill size={size}/>,
     "report": (size) => <BsFillBarChartFill size={size}/>,
     "message": (size) => <BiMessageSquareCheck size={size}/>,
+    "stripe": (size) => <Stripe size={size}/>,
+    "card": (size) => <BsCreditCard size={size}/>,
 }
 
 
